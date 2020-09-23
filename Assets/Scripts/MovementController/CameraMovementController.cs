@@ -18,6 +18,8 @@ public class CameraMovementController : MonoBehaviour
     public float MaxSpeed = 0.3f;
     [Tooltip("time in seconds before camera resets to idle position")]
     public float IdleCameraResetTime = 2.0f;
+    [Tooltip("between 0 and 1, what amount of input change is necessary to force a camera reset")]
+    public float HardTurnThreshold = 0.3f;
     [Tooltip("Character model to apply rotation and animation parameters to to")]
     public GameObject CharacterModel;
 
@@ -25,13 +27,16 @@ public class CameraMovementController : MonoBehaviour
     private Vector3 direction = new Vector3();
     private float speed = 0;
     private Animator animator;
-    private float horizontal;
-    private float vertical;
+    private float horizontal, lastHorizontal;
+    private float vertical, lastVertical;
     private Camera mainCamera;
     private Quaternion viewCheckpoint;
 
     void Start()
     {
+        horizontal = 0;
+        vertical = 0;
+
         //get animation controller
         animator = CharacterModel.GetComponent<Animator>();
 
@@ -72,13 +77,16 @@ public class CameraMovementController : MonoBehaviour
     void ResetCamera()
     {
         CameraController controller = mainCamera.GetComponent<CameraController>();
-        controller.SetCheckpoint(Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0));
+        controller.SetCheckpoint(Quaternion.Euler(0, CharacterModel.transform.rotation.eulerAngles.y, 0));
 
         controller.ResetCamera(IdleCameraResetTime);
     }
 
     void GetInput()
     {
+        lastHorizontal = horizontal;
+        lastVertical = vertical;
+
         horizontal = Input.GetAxis("Horizontal");
         vertical = Input.GetAxis("Vertical");
     }
@@ -87,7 +95,7 @@ public class CameraMovementController : MonoBehaviour
     {
         animator.SetFloat("Horizontal", horizontal);
         animator.SetFloat("Vertical", vertical);
-        animator.SetFloat("Speed", direction.magnitude / MaxSpeed);
+        animator.SetFloat("Speed", speed / MaxSpeed);
     }
 
     void debug()
@@ -95,13 +103,27 @@ public class CameraMovementController : MonoBehaviour
         //Debug.Log(new Vector2(horizontal, vertical));
         //Debug.Log("Local Direction: " + direction.ToString());
         //Debug.Log("World Direction: " + transform.TransformDirection(direction).ToString());
+
+        DebugHUD.Instance.PrintVariable("Horizontal/Vertical", new Vector2(horizontal, vertical));
+        DebugHUD.Instance.PrintVariable("Local Direction", direction);
+        DebugHUD.Instance.PrintVariable("World Direction", transform.TransformDirection(direction));
+        DebugHUD.Instance.PrintVariable("Speed", speed);
+        DebugHUD.Instance.PrintVariable("Hardturn", IsHardTurn());
+    }
+
+    bool IsHardTurn()
+    {
+        if ((Mathf.Abs(horizontal - lastHorizontal) > HardTurnThreshold) || (Mathf.Abs(vertical - lastVertical) > HardTurnThreshold))
+            return true;
+
+        return false;
     }
 
     bool IsReset = false;
     void CalculateViewpoint()
     {
         //if there's no input, reset the camera and its viewpoint
-        if (horizontal == 0.0f && vertical == 0.0f)
+        if ((horizontal == 0.0f && vertical == 0.0f))
         {
             SetViewpoint();
 
@@ -111,6 +133,12 @@ public class CameraMovementController : MonoBehaviour
                 ResetCamera();
                 IsReset = true;
             }
+        }
+        else if(IsHardTurn())
+        {
+            SetViewpoint();
+            ResetCamera();
+            IsReset = true;
         }
         else
         {
@@ -130,15 +158,24 @@ public class CameraMovementController : MonoBehaviour
 
     void CalculateSpeed()
     {
-        if (horizontal != 0.0f || vertical != 0.0f)
+        bool hardTurn = IsHardTurn();
+        if ((horizontal != 0.0f || vertical != 0.0f) && !hardTurn)
         {
             //acceleration
             speed = Mathf.Min(MaxSpeed, speed + (AccelerationTick * Time.deltaTime));
         }
         else
         {
-            //decceleration
-            speed = Mathf.Max(0, speed - (DecelerationTick * Time.deltaTime));
+            if (hardTurn)
+            {
+                //complete stop
+                speed = 0;
+            }
+            else
+            {
+                //decceleration
+                speed = Mathf.Max(0, speed - (DecelerationTick * Time.deltaTime));
+            }
         }
     }
 
@@ -168,7 +205,7 @@ public class CameraMovementController : MonoBehaviour
 
         Transform();
 
-        //UpdateAnimationController();
+        UpdateAnimationController();
 
 #if UNITY_EDITOR
         debug();

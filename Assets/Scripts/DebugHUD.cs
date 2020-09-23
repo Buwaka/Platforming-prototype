@@ -1,22 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine.UI;
 using UnityEngine;
 
 public class DebugHUD : Singleton<DebugHUD>
 {
-    class Node
-    {
-        public Node(string name, object data)
-        {
-            Name = name;
-            Data = data;
-        }
-        public string Name { get; set; }
-        public object Data { get; set; }
-    }
 
-    private List<Node> nodes = new List<Node>();
+    private Dictionary<string,string> nodes = new Dictionary<string, string>();
     private Canvas mainCanvas;
     private Text mainTextBox;
 
@@ -30,24 +21,30 @@ public class DebugHUD : Singleton<DebugHUD>
         mainTextBox = GetComponentInChildren<Text>();
     }
 
-    public void AddNode(string name, object value)
+    public void PrintVariable(string name, object value)
     {
-        Node temp = new Node(name,value);
-        nodes.Add(temp);
+        if(nodes.ContainsKey(name))
+        {
+            nodes[name] = value.ToString();
+        }
+        else
+        {
+            nodes.Add(name, value.ToString());
+        }
     }
 
     private void UpdateUI()
     {
         string data = "";
-        foreach (Node node in nodes)
+        foreach (var node in nodes)
         {
-            data += node.Name + ": " + node.Data.ToString() + "\n";
+            data += node.Key + ": " + node.Value + "\n";
         }
         mainTextBox.text = data;
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         //if(mainCanvas.worldCamera != Camera.current)
         //{

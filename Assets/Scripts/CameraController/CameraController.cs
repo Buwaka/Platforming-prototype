@@ -35,17 +35,12 @@ public class CameraController : MonoBehaviour
         mainCamera = GetComponent<Camera>();
         currentTarget = Target.transform;
         rotatedCameraOffset = CameraOffset;
-
-        SetDebugVariables();
     }
 
-    void SetDebugVariables()
+    void Debug()
     {
-        DebugHUD.Instance.AddNode("RotationTimer", rotationTimer);
-        DebugHUD.Instance.AddNode("Vertical Angle", verticalAngle);
-
-        Debug.Log("rotationTimer: " + rotationTimer.ToString());
-        Debug.Log("Vertical Angle: " + verticalAngle.ToString());
+        DebugHUD.Instance.PrintVariable("RotationTimer", rotationTimer);
+        DebugHUD.Instance.PrintVariable("Vertical Angle", verticalAngle);
     }
 
     public void ShiftView(float HorizontalDegrees, float VerticalDegrees)
@@ -200,7 +195,7 @@ public class CameraController : MonoBehaviour
         LookAtTarget();
 
 #if UNITY_EDITOR
-        //debug();
+        Debug();
 #endif
     }
 }
