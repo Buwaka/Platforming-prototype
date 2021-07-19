@@ -9,6 +9,8 @@ public class CameraController : MonoBehaviour
     public GameObject Target;
     [Tooltip("The maximum distance the camera is allowed to move away from the Target")]
     public float MaxDistance = 4.0f;
+    [Tooltip("The speed at which the Camera will try to keep up with the target")]
+    public float Speed = 1.0f;
     [Tooltip("Offset that will be added onto the Target position")]
     public Vector3 CameraOffset = new Vector3(0, 2.0f, -2.5f);
     [Tooltip("Horizontal rotation speed in degrees per second")]
@@ -28,6 +30,9 @@ public class CameraController : MonoBehaviour
     private Quaternion currentAngle = Quaternion.identity;
     private Quaternion angleCheckpoint = Quaternion.identity;
 
+    private float horizontalInput = 0;
+    private float verticalInput = 0;
+
     private bool IsResetingCamera = false;
 
     void Start()
@@ -41,6 +46,9 @@ public class CameraController : MonoBehaviour
     {
         DebugHUD.Instance.PrintVariable("RotationTimer", rotationTimer);
         DebugHUD.Instance.PrintVariable("Vertical Angle", verticalAngle);
+
+        Vector2 input = new Vector2(horizontalInput, verticalInput);
+        DebugHUD.Instance.PrintVariable("Rotation Horizontal/Vertical", input);
     }
 
     public void ShiftView(float HorizontalDegrees, float VerticalDegrees)
@@ -99,7 +107,7 @@ public class CameraController : MonoBehaviour
         if (distance > MaxDistance)
             error = distance - MaxDistance;
         else
-            error = distance * Time.deltaTime;
+            error = distance * Time.deltaTime * Speed;
 
         Vector3 direction = targetPosition - transform.position;
         direction.Normalize();
@@ -166,13 +174,13 @@ public class CameraController : MonoBehaviour
 
     void CameraRotationCheck()
     {
-        float horizontal = Input.GetAxis("Rotation Horizontal");
-        float vertical = Input.GetAxis("Rotation Vertical");
+        horizontalInput = Input.GetAxis("Rotation Horizontal");
+        verticalInput = Input.GetAxis("Rotation Vertical");
 
-        if (Mathf.Abs(horizontal) > 0.0f || Mathf.Abs(vertical) > 0.0f)
+        if (Mathf.Abs(horizontalInput) > 0.0f || Mathf.Abs(verticalInput) > 0.0f)
         {
-            ShiftView(horizontal * HorizontalRotationSpeed * Time.deltaTime, 
-                      vertical * VerticalRotationSpeed * Time.deltaTime);
+            ShiftView(horizontalInput * HorizontalRotationSpeed * Time.deltaTime,
+                      verticalInput * VerticalRotationSpeed * Time.deltaTime);
 
             rotationTimer = CameraResetCooldown;
             IsResetingCamera = false;
