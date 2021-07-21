@@ -32,6 +32,7 @@ public class CameraController : MonoBehaviour
 
     private float horizontalInput = 0;
     private float verticalInput = 0;
+    private float rotationTimer = 0;
 
     private bool IsResetingCamera = false;
 
@@ -88,6 +89,11 @@ public class CameraController : MonoBehaviour
         angleCheckpoint = Angle;
     }
 
+    public void SetCheckpoint()
+    {
+        angleCheckpoint = currentAngle;
+    }
+
     void LookAtTarget(Transform target)
     {
         currentTarget = target;
@@ -96,29 +102,6 @@ public class CameraController : MonoBehaviour
     void LookAtTarget(GameObject target)
     {
         currentTarget = target.transform;
-    }
-
-    void FollowTarget()
-    {
-        Vector3 targetPosition = Target.transform.position + rotatedCameraOffset;
-        float distance = Vector3.Distance(targetPosition, transform.position);
-
-        float error = 0;
-        if (distance > MaxDistance)
-            error = distance - MaxDistance;
-        else
-            error = distance * Time.deltaTime * Speed;
-
-        Vector3 direction = targetPosition - transform.position;
-        direction.Normalize();
-
-        Vector3 temp = direction * error;
-        transform.Translate(temp, Space.World);
-    }
-
-    void LookAtTarget()
-    {
-        transform.LookAt(currentTarget);
     }
 
     Coroutine temp;
@@ -132,6 +115,8 @@ public class CameraController : MonoBehaviour
         rotationTimer = CameraResetCooldown + Delay;
         temp = StartCoroutine(ResetCameraCorotine(CameraResetTime, Delay));
     }
+
+    #region Operational
 
     IEnumerator ResetCameraCorotine(float time, float delay = 0.0f)
     {
@@ -170,7 +155,28 @@ public class CameraController : MonoBehaviour
         rotatedCameraOffset = angleCheckpoint * CameraOffset;
     }
 
-    private float rotationTimer = 0;
+    void LookAtTarget()
+    {
+        transform.LookAt(currentTarget);
+    }
+
+    void FollowTarget()
+    {
+        Vector3 targetPosition = Target.transform.position + rotatedCameraOffset;
+        float distance = Vector3.Distance(targetPosition, transform.position);
+
+        float error = 0;
+        if (distance > MaxDistance)
+            error = distance - MaxDistance;
+        else
+            error = distance * Time.deltaTime * Speed;
+
+        Vector3 direction = targetPosition - transform.position;
+        direction.Normalize();
+
+        Vector3 temp = direction * error;
+        transform.Translate(temp, Space.World);
+    }
 
     void CameraRotationCheck()
     {
@@ -192,6 +198,7 @@ public class CameraController : MonoBehaviour
 
         rotationTimer -= Time.deltaTime;
     }
+    #endregion
 
 
     void Update()

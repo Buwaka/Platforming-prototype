@@ -809,7 +809,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 0f2978993cddc449c99a4e1893ed3479, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -863,7 +863,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1599986862}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.77, z: -1}
+  m_LocalPosition: {x: 0, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1785423711}
@@ -940,7 +940,8 @@ MonoBehaviour:
   HardTurnThreshold: 0.3
   MovementCutOff: 0.4
   CharacterModel: {fileID: 883224046}
-  DirectionAnchor: {fileID: 1599986863}
+  Anchor: {fileID: 1599986863}
+  CameraController: {fileID: 963194229}
 --- !u!1 &2108664217
 GameObject:
   m_ObjectHideFlags: 0
